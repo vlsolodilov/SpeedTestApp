@@ -48,7 +48,14 @@ fun SpeedTestScreen(
             color = MaterialTheme.colorScheme.onPrimary,
             textAlign = TextAlign.Center
         )
-        if (state.testStatus == TestStatus.NO_STARTED) {
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = "http://eperf.comfortel.pro/speedtest/",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onPrimary,
+            textAlign = TextAlign.Center
+        )
+        if (state.testDownloadStatus == TestStatus.NO_STARTED && state.testUploadStatus == TestStatus.NO_STARTED) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -105,6 +112,7 @@ fun SpeedTestScreen(
                             modifier = Modifier.weight(1f),
                             title = stringResource(id = R.string.download),
                             speed = state.downloadSpeed,
+                            testStatus = state.testDownloadStatus,
                         )
                     }
                     if (state.isVisibleUpload) {
@@ -112,22 +120,13 @@ fun SpeedTestScreen(
                             modifier = Modifier.weight(1f),
                             title = stringResource(id = R.string.upload),
                             speed = state.uploadSpeed,
+                            testStatus = state.testUploadStatus,
                         )
                     }
                 }
                 Spacer(modifier = Modifier.height(40.dp))
-                Text(
-                    text = when (state.testStatus) {
-                        TestStatus.STARTED -> stringResource(id = R.string.test_in_progress)
-                        TestStatus.FINISHED -> stringResource(id = R.string.test_completed)
-                        TestStatus.FAILED -> stringResource(id = R.string.test_failed)
-                        else -> ""
-                    },
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                )
-                if (state.testStatus == TestStatus.FINISHED) {
+
+                if (state.testDownloadStatus != TestStatus.STARTED && state.testUploadStatus != TestStatus.STARTED) {
                     TextButton(onClick = viewModel::onStartClick) {
                         Text(
                             modifier = Modifier.padding(top = 24.dp),

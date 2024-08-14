@@ -26,13 +26,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
 
-            val colorScheme = if (
-                viewModel.themeMode.value == ThemeMode.DARK
-                || isSystemInDarkTheme()
-            ) {
-                DarkColorScheme
-            } else {
-                LightColorScheme
+            val colorScheme = when(viewModel.themeMode.value) {
+                ThemeMode.DARK -> DarkColorScheme
+                ThemeMode.LIGHT -> LightColorScheme
+                ThemeMode.SYSTEM -> {
+                    if (isSystemInDarkTheme()) DarkColorScheme else LightColorScheme
+                }
+                else -> LightColorScheme
             }
             MaterialTheme(
                 colorScheme = colorScheme,

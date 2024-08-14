@@ -10,8 +10,10 @@ val presentationModule = module {
         TestViewModel(
             savedStateHandle = get(),
             checkInternetConnectionUseCase = get(),
-            startTestUseCase = get(),
-            getTestStatusUseCase = get(),
+            startDownloadTestUseCase = get(),
+            startUploadTestUseCase = get(),
+            getDownloadTestStatusUseCase = get(),
+            getUploadTestStatusUseCase = get(),
             getCurrentDownloadSpeedUseCase = get(),
             getFinishedDownloadSpeedUseCase = get(),
             getCurrentUploadSpeedUseCase = get(),

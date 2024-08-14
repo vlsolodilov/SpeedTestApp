@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.koin.androidx.compose)
     implementation(libs.okhttp)
     implementation (libs.speedchecker.sdk)
+    implementation("fr.bmartel:jspeedtest:1.32.1")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

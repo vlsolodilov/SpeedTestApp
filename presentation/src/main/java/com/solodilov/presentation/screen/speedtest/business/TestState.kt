@@ -7,7 +7,8 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class TestState(
     val isConnected: Boolean = false,
-    @TestStatus val testStatus: Int = TestStatus.NO_STARTED,
+    @TestStatus val testDownloadStatus: Int = TestStatus.NO_STARTED,
+    @TestStatus val testUploadStatus: Int = TestStatus.NO_STARTED,
     val downloadSpeed: Double = 0.0,
     val uploadSpeed: Double = 0.0,
     val isVisibleDownload: Boolean = false,

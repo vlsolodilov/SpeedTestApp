@@ -23,6 +23,6 @@ val dataModule = module {
 
     single<SettingsManager> { SettingsManagerImpl(pref = get()) }
 
-    single<SpeedTestManager> { SpeedTestManagerImpl(androidContext()) }
+    single<SpeedTestManager> { SpeedTestManagerImpl() }
 
 }

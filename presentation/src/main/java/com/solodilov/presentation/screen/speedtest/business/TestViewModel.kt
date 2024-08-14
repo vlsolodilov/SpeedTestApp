@@ -8,11 +8,15 @@ import com.solodilov.domain.usecase.GetCurrentUploadSpeedUseCase
 import com.solodilov.domain.usecase.GetFinishedDownloadSpeedUseCase
 import com.solodilov.domain.usecase.GetFinishedUploadSpeedUseCase
 import com.solodilov.domain.usecase.GetSettingsUseCase
-import com.solodilov.domain.usecase.GetTestStatusUseCase
-import com.solodilov.domain.usecase.StartTestUseCase
+import com.solodilov.domain.usecase.GetDownloadTestStatusUseCase
+import com.solodilov.domain.usecase.GetUploadTestStatusUseCase
+import com.solodilov.domain.usecase.StartDownloadTestUseCase
+import com.solodilov.domain.usecase.StartUploadTestUseCase
 import com.solodilov.util.BasicSideEffect
 import com.solodilov.util.annotation.TestStatus
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.syntax.simple.intent
 import org.orbitmvi.orbit.syntax.simple.reduce
@@ -22,8 +26,10 @@ import org.orbitmvi.orbit.viewmodel.container
 class TestViewModel(
     savedStateHandle: SavedStateHandle,
     private val checkInternetConnectionUseCase: CheckInternetConnectionUseCase,
-    private val startTestUseCase: StartTestUseCase,
-    private val getTestStatusUseCase: GetTestStatusUseCase,
+    private val startDownloadTestUseCase: StartDownloadTestUseCase,
+    private val startUploadTestUseCase: StartUploadTestUseCase,
+    private val getDownloadTestStatusUseCase: GetDownloadTestStatusUseCase,
+    private val getUploadTestStatusUseCase: GetUploadTestStatusUseCase,
     private val getCurrentDownloadSpeedUseCase: GetCurrentDownloadSpeedUseCase,
     private val getFinishedDownloadSpeedUseCase: GetFinishedDownloadSpeedUseCase,
     private val getCurrentUploadSpeedUseCase: GetCurrentUploadSpeedUseCase,
@@ -49,15 +55,17 @@ class TestViewModel(
             }
             combine(
                 checkInternetConnectionUseCase(),
-                getTestStatusUseCase(),
+                getDownloadTestStatusUseCase(),
+                getUploadTestStatusUseCase(),
                 getCurrentDownloadSpeedUseCase(),
                 getCurrentUploadSpeedUseCase(),
-            ) { isConnected, testStatus, downloadSpeed, uploadSpeed ->
+            ) { isConnected, testDownloadStatus, testUploadStatus, downloadSpeed, uploadSpeed ->
                 state.copy(
                     isConnected = isConnected,
-                    testStatus = testStatus,
-                    downloadSpeed = if (testStatus == TestStatus.FINISHED) getFinishedDownloadSpeedUseCase() else downloadSpeed,
-                    uploadSpeed = if (testStatus == TestStatus.FINISHED) getFinishedUploadSpeedUseCase() else uploadSpeed,
+                    testDownloadStatus = testDownloadStatus,
+                    testUploadStatus = testUploadStatus,
+                    downloadSpeed = if (testDownloadStatus == TestStatus.FINISHED) getFinishedDownloadSpeedUseCase() else downloadSpeed,
+                    uploadSpeed = if (testUploadStatus == TestStatus.FINISHED) getFinishedUploadSpeedUseCase() else uploadSpeed,
                 )
             }.collect { newState ->
                 reduce { newState }
@@ -66,8 +74,22 @@ class TestViewModel(
     }
 
     fun onStartClick() = intent {
+        reduce { state.copy(
+            downloadSpeed = 0.0,
+            uploadSpeed = 0.0,
+        ) }
         if (state.isConnected) {
-            reduce { state.copy(showLocationPermissionDialog = true) }
+            if (state.isVisibleDownload && state.isVisibleUpload) {
+                startDownloadTestUseCase()
+                getDownloadTestStatusUseCase()
+                    .filter { it == TestStatus.FINISHED }
+                    .first()
+                    .also { startUploadTestUseCase() }
+            } else if (state.isVisibleDownload) {
+                startDownloadTestUseCase()
+            } else if (state.isVisibleUpload) {
+                startUploadTestUseCase()
+            }
         } else {
             return@intent
         }
@@ -75,7 +97,7 @@ class TestViewModel(
 
     fun onLocationPermissionGranted() = intent {
         reduce { state.copy(showLocationPermissionDialog = false) }
-        startTestUseCase()
+        startUploadTestUseCase()
     }
 
     fun hidePermissionDialog() = intent {
